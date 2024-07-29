@@ -34,7 +34,7 @@ def main():
 
 
     st.header('Input data')
-    st.markdown("**1. Load the house' data**")
+    st.markdown("**1. Load the house data**")
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, index_col=False)      
