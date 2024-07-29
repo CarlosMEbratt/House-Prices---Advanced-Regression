@@ -91,16 +91,32 @@ def main():
 
     #'''--------------------------------------------------------------------------------------
     st.markdown('**3. Predict House Prices**')
+
     # Load the saved model
+
     if st.button('Predict'):
-        # # Convert input data to numpy array
-        #input_data_np = np.array(df)  # Adjust input data format as needed
 
         # Perform inference using the loaded model
         prediction = loaded_model.predict(df)
         df['predictions'] = prediction
+
         # Display prediction
         st.dataframe(data=prediction, use_container_width=True)
+
+    
+    # if st.button('Predict'):
+    #     # Perform inference using the loaded model
+    #     predictions = loaded_model.predict(df.drop(columns=['Id']))
+        
+    #     # Add the predictions to the dataframe
+    #     df['predictions'] = predictions
+
+    #     # Select only 'Id' and 'predictions' columns for display
+    #     result_df = df[['Id', 'predictions']]
+        
+    #     # Display the results   
+    #     st.write("Prediction Results:")
+    #     st.dataframe(result_df, use_container_width=True)
 
 # Call the main function
 if __name__ == '__main__':
