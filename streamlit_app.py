@@ -1,25 +1,15 @@
 import time
 import streamlit as st
-from datetime import datetime
 import pandas as pd
-import numpy as np
-import pickle
-
-
-#'''Streamlit settings------------------------------------------------------------------------------------------------------------- '''
 
 # Page title
 st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', layout='centered', initial_sidebar_state='auto')
 
 
-
-
 #'''Main Function------------------------------------------------------------------------------------------------------------- '''
-    
 
 def main():
     
-     
     with st.sidebar:
 
         with st.expander('About this app / Instructions'):
@@ -100,23 +90,13 @@ def main():
         prediction = loaded_model.predict(df)
         df['predictions'] = prediction
 
+        # Create a DataFrame with the predictions
+        df_predictions = pd.DataFrame({'Id': range(1461, 2920), 'SalePrice': prediction})
+
         # Display prediction
-        st.dataframe(data=prediction, use_container_width=True)
+        st.dataframe(data=df_predictions, use_container_width=True)
 
-    
-    # if st.button('Predict'):
-    #     # Perform inference using the loaded model
-    #     predictions = loaded_model.predict(df.drop(columns=['Id']))
-        
-    #     # Add the predictions to the dataframe
-    #     df['predictions'] = predictions
 
-    #     # Select only 'Id' and 'predictions' columns for display
-    #     result_df = df[['Id', 'predictions']]
-        
-    #     # Display the results   
-    #     st.write("Prediction Results:")
-    #     st.dataframe(result_df, use_container_width=True)
 
 # Call the main function
 if __name__ == '__main__':
