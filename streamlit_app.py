@@ -34,7 +34,10 @@ def main():
                     ''', language='markdown')
 
 
-    st.header('Input data')
+
+    
+    st.header('House Price Prediction App 🏠')
+
     st.markdown("**1. Load the house data**")
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
@@ -98,7 +101,6 @@ def main():
         st.dataframe(data=df_predictions, use_container_width=True)
 
         # Plotting the histogram of predicted prices
-        st.markdown('**Histogram of Predicted Prices**')
         fig = px.histogram(df_predictions, x='SalePrice', nbins=30, title='Distribution of Predicted House Prices')
         fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
         st.plotly_chart(fig)
