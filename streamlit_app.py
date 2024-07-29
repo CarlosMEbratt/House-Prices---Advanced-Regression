@@ -1,6 +1,7 @@
 import time
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # Page title
 st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', layout='centered', initial_sidebar_state='auto')
@@ -95,6 +96,12 @@ def main():
 
         # Display prediction
         st.dataframe(data=df_predictions, use_container_width=True)
+
+        # Plotting the histogram of predicted prices
+        st.markdown('**Histogram of Predicted Prices**')
+        fig = px.histogram(df_predictions, x='SalePrice', nbins=30, title='Distribution of Predicted House Prices')
+        fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
+        st.plotly_chart(fig)
 
 
 
