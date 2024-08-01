@@ -19,7 +19,7 @@ def main():
             st.warning('1. Upload a data set using the browse button, 2. Select an option to load the model, and 3. Click on "Predict". This will initiate the ML model and data processing.')
 
             st.markdown("""You can download a sample CSV file from the following link:
-            [Download Sample CSV](https://github.com/CarlosMEbratt/House-Prices---Advanced-Regression/blob/main/df_to_load.csv)
+            [Download Sample CSV](https://drive.google.com/uc?export=download&id=193l5VxA4GPZCluH63MIFyFE71ujaHZ0T)
             """, unsafe_allow_html=True)
 
             st.markdown('**Under the hood**')
