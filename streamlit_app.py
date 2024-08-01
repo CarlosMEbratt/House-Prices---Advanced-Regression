@@ -2,49 +2,41 @@ import time
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import requests
+import pickle
 
 # Page title
 st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', layout='centered', initial_sidebar_state='auto')
 
-
-#'''Main Function------------------------------------------------------------------------------------------------------------- '''
-
+# Main Function
 def main():
-    
     with st.sidebar:
-
         with st.expander('About this app / Instructions'):
-                    st.markdown('**What can this app do?**')
-                    st.info('This app allow users to load a housedata.csv file and use it to build a machine learning model to predict house prices.')
+            st.markdown('**What can this app do?**')
+            st.info('This app allows users to load a house data CSV file and use it to build a machine learning model to predict house prices.')
 
-                    st.markdown('**How to use the app?**')
-                    st.warning('1. Select a data set and 2. Click on "Run the model". As a result, this would initiate the ML model and data processing.')
+            st.markdown('**How to use the app?**')
+            st.warning('1. Select a data set and 2. Click on "Run the model". This will initiate the ML model and data processing.')
 
-                    st.markdown('**Under the hood**')
-                    st.markdown('Data sets:')
-                    st.code('''- You can upload your own data set or use the example data set provided in the app.
-                    ''', language='markdown')
-                    
-                    st.markdown('Libraries used:')
-                    st.code('''
-                            * Pandas for data wrangling  
-                            * Scikit-learn
-                            * RandomForestRegressor for machine learning
-                            * Streamlit for user interface
-                    ''', language='markdown')
+            st.markdown('**Under the hood**')
+            st.markdown('Data sets:')
+            st.code('''- You can upload your own data set or use the example data set provided in the app.
+            ''', language='markdown')
+            
+            st.markdown('Libraries used:')
+            st.code('''
+                    * Pandas for data wrangling  
+                    * Scikit-learn
+                    * RandomForestRegressor for machine learning
+                    * Streamlit for user interface
+            ''', language='markdown')
 
-
-
-    
     st.header('House Price Prediction App 🏠')
 
     st.markdown("**1. Load the house data**")
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, index_col=False)      
-
-    
-    #'''--------------------------------------------------------------------------------------
 
     # Initiate the model building process
     if uploaded_file:  
@@ -55,57 +47,87 @@ def main():
         with st.spinner('Wait for it...'):
             time.sleep(2)
 
-        #st.write('Customer predictions are now complete!')
         st.markdown(''':blue[House data has been loaded!]''')
-
         st.dataframe(data=df, use_container_width=True)
 
+    # Option to select how to load the model
+    st.markdown('**2. Load the model**')
+    option = st.radio("Choose how to load the model:", ('Automatically from GitHub', 'Manually by uploading a file'))
 
-    #'''--------------------------------------------------------------------------------------
-
-    st.markdown('**2. Load the saved model**')
-    # Load the saved model
-    uploaded_pkl = st.file_uploader("Upload .pkl file", type=["pkl"])
-
-    # Check if a file is uploaded
-    if uploaded_pkl is not None:
-        st.write("File uploaded successfully!")
-
+    @st.cache_data
+    def load_pkl_file_from_url(url):
         try:
-            # Load the model from the file
-            loaded_model = pd.read_pickle(uploaded_pkl)
-            st.success("Model loaded successfully!")
-            
-        except Exception as e:
-            st.error(f"Error loading .pkl file: {e}")
+            response = requests.get(url)
+            response.raise_for_status()  # Check if the request was successful
+
+            # Check if the response content type is correct
+            if 'application/octet-stream' not in response.headers['Content-Type']:
+                st.error(f"Unexpected content type: {response.headers['Content-Type']}")
+                return None
+
+            # Check the first few bytes of the file
+            if response.content[:2] != b'\x80\x04':
+                st.error("File does not appear to be a valid pickle file.")
+                return None
+
+            return pickle.loads(response.content)
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request failed: {e}")
+            return None
+        except pickle.UnpicklingError as e:
+            st.error(f"Failed to unpickle the file: {e}")
+            return None
+
+    loaded_model = None
+
+    if option == 'Automatically from GitHub':
+        # URL of the .pkl file in your GitHub repository
+        url = 'https://raw.githubusercontent.com/CarlosMEbratt/House-Prices---Advanced-Regression/main/best_rf.pkl'
+        loaded_model = load_pkl_file_from_url(url)
+
+        if loaded_model:
+            st.write("Model loaded successfully!")
+        else:
+            st.error("Failed to load the model.")
 
     else:
-        st.info("Please upload a .pkl file.")
+        # Load the saved model manually
+        uploaded_pkl = st.file_uploader("Upload .pkl file", type=["pkl"])
 
+        # Check if a file is uploaded
+        if uploaded_pkl is not None:
+            st.write("File uploaded successfully!")
 
-    #'''--------------------------------------------------------------------------------------
+            try:
+                # Load the model from the file
+                loaded_model = pickle.load(uploaded_pkl)
+                st.success("Model loaded successfully!")
+            except Exception as e:
+                st.error(f"Error loading .pkl file: {e}")
+
+        else:
+            st.info("Please upload a .pkl file.")
+
+    # Prediction
     st.markdown('**3. Predict House Prices**')
 
-    # Load the saved model
-
     if st.button('Predict'):
+        if loaded_model is None:
+            st.error("Model is not loaded. Please load a model first.")
+        elif uploaded_file is None:
+            st.error("House data is not loaded. Please upload a house data CSV file.")
+        else:
+            # Perform inference using the loaded model
+            prediction = loaded_model.predict(df)
+            df['Predicted_Price'] = prediction
 
-        # Perform inference using the loaded model
-        prediction = loaded_model.predict(df)
-        df['predictions'] = prediction
+            # Display prediction
+            st.dataframe(data=df, use_container_width=True)
 
-        # Create a DataFrame with the predictions
-        df_predictions = pd.DataFrame({'Id': range(1461, 2920), 'SalePrice': prediction})
-
-        # Display prediction
-        st.dataframe(data=df_predictions, use_container_width=True)
-
-        # Plotting the histogram of predicted prices
-        fig = px.histogram(df_predictions, x='SalePrice', nbins=30, title='Distribution of Predicted House Prices')
-        fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
-        st.plotly_chart(fig)
-
-
+            # Plotting the histogram of predicted prices
+            fig = px.histogram(df, x='Predicted_Price', nbins=50, title='Distribution of Predicted House Prices')
+            fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
+            st.plotly_chart(fig)
 
 # Call the main function
 if __name__ == '__main__':
