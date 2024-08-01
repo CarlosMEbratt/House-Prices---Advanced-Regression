@@ -8,50 +8,80 @@ import pickle
 # Page title
 st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', layout='centered', initial_sidebar_state='auto')
 
+# Define column names
+column_names = [
+    'OverallQual', 'YearBuilt', 'YearRemodAdd', 'ExterQual', 'ExterCond',
+    'BsmtQual', 'BsmtCond', 'TotalBsmtSF', 'HeatingQC', 'GrLivArea',
+    'KitchenQual', 'Fireplaces', 'FireplaceQu', 'GarageCars', 'GarageQual',
+    'GarageCond', 'WoodDeckSF', 'OpenPorchSF', 'TotalBath', 'TotalHalfBath'
+]
+
 # Main Function
 def main():
-    with st.sidebar:
-        with st.expander('About this app / Instructions'):
-            st.markdown('**What can this app do?**')
-            st.info('This app allows users to load a house data CSV file and use it to build a machine learning model to predict house prices.')
+    tabs = st.tabs(["Upload Data", "Enter Data"])
 
-            st.markdown('**How to use the app?**')
-            st.warning('1. Select a data set and 2. Click on "Run the model". This will initiate the ML model and data processing.')
+    uploaded_file = None
+    loaded_model = None
+    new_data = pd.DataFrame()
 
-            st.markdown('**Under the hood**')
-            st.markdown('Data sets:')
-            st.code('''- You can upload your own data set or use the example data set provided in the app.
-            ''', language='markdown')
-            
-            st.markdown('Libraries used:')
-            st.code('''
-                    * Pandas for data wrangling  
-                    * Scikit-learn
-                    * RandomForestRegressor for machine learning
-                    * Streamlit for user interface
-            ''', language='markdown')
+    with tabs[0]:
+        st.header('House Price Prediction App 🏠')
 
-    st.header('House Price Prediction App 🏠')
+        st.markdown("**1. Load the house data**")
+        uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file, index_col=False)      
 
-    st.markdown("**1. Load the house data**")
-    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, index_col=False)      
+            # Initiate the model building process
+            st.subheader('Processing the data')
+            st.write('Processing in progress...')
 
-    # Initiate the model building process
-    if uploaded_file:  
-        st.subheader('Processing the data')
-        st.write('Processing in progress...')
+            # Placeholder for model building process
+            with st.spinner('Wait for it...'):
+                time.sleep(2)
 
-        # Placeholder for model building process
-        with st.spinner('Wait for it...'):
-            time.sleep(2)
+            st.markdown(''':blue[House data has been loaded!]''')
+            st.dataframe(data=df, use_container_width=True)
 
-        st.markdown(''':blue[House data has been loaded!]''')
-        st.dataframe(data=df, use_container_width=True)
+    with tabs[1]:
+        st.header('Enter Data Manually')
 
-    # Option to select how to load the model
-    st.markdown('**2. Load the model**')
+        st.markdown("**2. Enter data for prediction**")
+
+        # Create a form for entering new data
+        with st.form("Enter New Data"):
+            input_data = {col: st.text_input(col, "") for col in column_names}
+            predict_button = st.form_submit_button("Predict Price")
+
+            if predict_button:
+                # Create a new DataFrame from the input data
+                try:
+                    new_data = pd.DataFrame([input_data])
+                    st.success('Data entered successfully!')
+                    st.write('New Data for prediction:')
+                    st.dataframe(new_data, use_container_width=True)
+
+                    # Perform inference using the loaded model
+                    if loaded_model is not None:
+                        try:
+                            prediction = loaded_model.predict(new_data)
+                            new_data['Predicted_Price'] = prediction
+
+                            # Display prediction
+                            st.write(f"Predicted House Price: ${prediction[0]:,.2f}")
+
+                            # Plotting the histogram of predicted prices
+                            fig = px.histogram(new_data, x='Predicted_Price', nbins=50, title='Distribution of Predicted House Prices')
+                            fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
+                            st.plotly_chart(fig)
+                        except Exception as e:
+                            st.error(f"Prediction failed: {e}")
+                    else:
+                        st.error("Model is not loaded. Please load a model first.")
+                except Exception as e:
+                    st.error(f"Error creating DataFrame: {e}")
+
+    st.markdown('**3. Load the model**')
     option = st.radio("Choose how to load the model:", ('Automatically from GitHub', 'Manually by uploading a file'))
 
     @st.cache_data
@@ -77,8 +107,6 @@ def main():
         except pickle.UnpicklingError as e:
             st.error(f"Failed to unpickle the file: {e}")
             return None
-
-    loaded_model = None
 
     if option == 'Automatically from GitHub':
         # URL of the .pkl file in your GitHub repository
@@ -107,27 +135,6 @@ def main():
 
         else:
             st.info("Please upload a .pkl file.")
-
-    # Prediction
-    st.markdown('**3. Predict House Prices**')
-
-    if st.button('Predict'):
-        if loaded_model is None:
-            st.error("Model is not loaded. Please load a model first.")
-        elif uploaded_file is None:
-            st.error("House data is not loaded. Please upload a house data CSV file.")
-        else:
-            # Perform inference using the loaded model
-            prediction = loaded_model.predict(df)
-            df['Predicted_Price'] = prediction
-
-            # Display prediction
-            st.dataframe(data=df, use_container_width=True)
-
-            # Plotting the histogram of predicted prices
-            fig = px.histogram(df, x='Predicted_Price', nbins=50, title='Distribution of Predicted House Prices')
-            fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
-            st.plotly_chart(fig)
 
 # Call the main function
 if __name__ == '__main__':
