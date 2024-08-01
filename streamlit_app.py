@@ -11,12 +11,16 @@ st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', la
 # Main Function
 def main():
     with st.sidebar:
-        with st.expander('About this app / Instructions'):
+        with st.expander('About this app / Instructions', expanded=True):
             st.markdown('**What can this app do?**')
             st.info('This app allows users to load a house data CSV file and use it to build a machine learning model to predict house prices.')
 
             st.markdown('**How to use the app?**')
-            st.warning('1. Select a data set and 2. Click on "Run the model". This will initiate the ML model and data processing.')
+            st.warning('1. Upload a data set using the browse button, 2. Select an option to load the model, and 3. Click on "Predict". This will initiate the ML model and data processing.')
+
+            st.markdown("""You can download a sample CSV file from the following link:
+            [Download Sample CSV](https://github.com/CarlosMEbratt/House-Prices---Advanced-Regression/blob/main/df_to_load.csv)
+            """, unsafe_allow_html=True)
 
             st.markdown('**Under the hood**')
             st.markdown('Data sets:')
@@ -25,10 +29,11 @@ def main():
             
             st.markdown('Libraries used:')
             st.code('''
+                    * Streamlit for user interface
                     * Pandas for data wrangling  
                     * Scikit-learn
-                    * RandomForestRegressor for machine learning
-                    * Streamlit for user interface
+                    * Picke with RandomForestRegressor for machine learning
+                    
             ''', language='markdown')
 
     st.header('House Price Prediction App 🏠')
