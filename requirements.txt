@@ -1,5 +1,9 @@
 streamlit
 scikit-learn
 joblib
+<<<<<<< HEAD
 requests
 pickle
+=======
+plotly
+>>>>>>> a8a281ffdd3a3b961d30365172b23b4d3f047840
