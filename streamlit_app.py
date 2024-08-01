@@ -1,6 +1,7 @@
 import time
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # Page title
 st.set_page_config(page_title='House Price Prediction App', page_icon='🏠', layout='centered', initial_sidebar_state='auto')
@@ -33,8 +34,11 @@ def main():
                     ''', language='markdown')
 
 
-    st.header('Input data')
-    st.markdown("**1. Load the house' data**")
+
+    
+    st.header('House Price Prediction App 🏠')
+
+    st.markdown("**1. Load the house data**")
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, index_col=False)      
@@ -95,6 +99,11 @@ def main():
 
         # Display prediction
         st.dataframe(data=df_predictions, use_container_width=True)
+
+        # Plotting the histogram of predicted prices
+        fig = px.histogram(df_predictions, x='SalePrice', nbins=30, title='Distribution of Predicted House Prices')
+        fig.update_layout(xaxis_title='Predicted Sale Price', yaxis_title='Frequency')
+        st.plotly_chart(fig)
 
 
 
